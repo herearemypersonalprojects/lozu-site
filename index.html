@@ -90,6 +90,23 @@
         font-size: 1.8rem;
       }
     }
+
+    /* Style cho marker SOS */
+    .sos-marker {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e53935;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.7rem;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+      box-sizing: border-box;
+    }
   </style>
 </head>
 
@@ -113,12 +130,41 @@
   </div>
 
   <script>
-    // Map init
+    // Khởi tạo bản đồ
     const map = new maplibregl.Map({
       container: "map",
       style: "https://demotiles.maplibre.org/style.json",
       center: [107.8, 16.2],   // Trung tâm Việt Nam
       zoom: 5
+    });
+
+    // Một số vị trí rải rác khắp Việt Nam
+    const sosLocations = [
+      { name: "Hà Nội",        coords: [105.8342, 21.0278] },
+      { name: "Hải Phòng",     coords: [106.6881, 20.8449] },
+      { name: "Điện Biên",     coords: [103.0230, 21.3860] },
+      { name: "Huế",           coords: [107.5955, 16.4637] },
+      { name: "Đà Nẵng",       coords: [108.2208, 16.0678] },
+      { name: "Quy Nhơn",      coords: [109.2193, 13.7820] },
+      { name: "Nha Trang",     coords: [109.1967, 12.2388] },
+      { name: "TP. Hồ Chí Minh", coords: [106.6297, 10.8231] },
+      { name: "Cần Thơ",       coords: [105.7740, 10.0452] },
+      { name: "Cà Mau",        coords: [105.1550, 9.1760] }
+    ];
+
+    map.on("load", () => {
+      sosLocations.forEach((loc) => {
+        const el = document.createElement("div");
+        el.className = "sos-marker";
+        el.textContent = "SOS";
+
+        new maplibregl.Marker({
+          element: el,
+          anchor: "center"
+        })
+        .setLngLat(loc.coords)
+        .addTo(map);
+      });
     });
   </script>
 </body>
