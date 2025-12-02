@@ -1,219 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lozu – Paris Travel Map & Audio Guide for Tourists</title>
-  <meta name="description" content="Lozu is a smart travel companion that helps solo travelers discover the best things to do around them in Paris and beyond.">
+  <title>Bản đồ cứu trợ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- MapLibre -->
+  <link
+    href="https://unpkg.com/maplibre-gl@3.5.2/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@3.5.2/dist/maplibre-gl.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: #050816;
-      color: #f9fafb;
-    }
-    header {
-      padding: 1.5rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 1rem;
-    }
-    .badge {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: #e5e7eb;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 3rem 2rem 4rem;
-      max-width: 900px;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
       width: 100%;
-      margin: 0 auto;
-      gap: 2rem;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    h1 {
-      font-size: clamp(2.3rem, 4vw, 3.2rem);
-      line-height: 1.1;
-      margin-bottom: 1rem;
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
     }
-    h1 span.gradient {
-      background: linear-gradient(135deg, #22c55e, #a855f7, #38bdf8);
-      -webkit-background-clip: text;
-      color: transparent;
+
+    .overlay-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 24px 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(6px);
     }
-    p.lead {
-      font-size: 1.05rem;
-      line-height: 1.7;
-      color: #cbd5f5;
-      max-width: 38rem;
+
+    .title {
+      color: #e53935;
+      font-weight: 700;
+      margin-bottom: 16px;
+      font-size: 1.5rem;
     }
-    .cta-row {
+
+    .credits {
+      font-size: 0.75rem;
+      color: #1e88e5;
+      margin-bottom: 10px;
+    }
+
+    /* 3 tên theo cột, căn trái */
+    .names-column {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
-      margin-top: 1rem;
+      flex-direction: column;
+      align-items: flex-start;   /* căn trái */
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #1e88e5;
+
+      /* Để căn trái nhưng vẫn nằm giữa overlay */
+      margin-left: auto;
+      margin-right: auto;
+      width: fit-content;
     }
-    .btn-primary, .btn-ghost {
-      padding: 0.75rem 1.3rem;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .title {
+        font-size: 1.1rem;
+      }
+      .credits, .names-column {
+        font-size: 0.7rem;
+      }
+      .overlay-box {
+        padding: 18px 14px;
+      }
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e, #22c55e);
-      color: #020617;
-      border: none;
-      font-weight: 600;
-    }
-    .btn-ghost {
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      color: #e5e7eb;
-      background: transparent;
-    }
-    .pill {
-      font-size: 0.8rem;
-      padding: 0.3rem 0.8rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: #9ca3af;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.4rem;
-      margin-top: 2rem;
-    }
-    .card {
-      border-radius: 1.1rem;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent),
-                  radial-gradient(circle at bottom right, rgba(168,85,247,0.08), transparent),
-                  rgba(15,23,42,0.92);
-      padding: 1.3rem 1.4rem;
-    }
-    .card h3 {
-      font-size: 0.95rem;
-      margin-bottom: 0.5rem;
-    }
-    .card p {
-      font-size: 0.85rem;
-      color: #cbd5f5;
-      line-height: 1.6;
-    }
-    footer {
-      padding: 1.2rem 2rem;
-      font-size: 0.8rem;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    footer a {
-      color: #9ca3af;
-      text-decoration: none;
-    }
-    footer a:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 640px) {
-      header, main, footer {
-        padding-left: 1.2rem;
-        padding-right: 1.2rem;
+
+    @media (min-width: 1024px) {
+      .title {
+        font-size: 1.8rem;
       }
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <div class="logo">LOZU</div>
-    <div class="badge">Paris · Solo Travel Map & Audio Guide</div>
-  </header>
+  <!-- Map background -->
+  <div id="map"></div>
 
-  <main>
-    <section>
-      <h1>
-        <span class="gradient">Discover Paris</span><br />
-        like a local, even when you’re solo.
-      </h1>
-      <p class="lead">
-        Lozu is a smart travel companion for solo travelers. 
-        Find the best monuments, cafés, viewpoints and secret spots around you – 
-        curated for safety, beauty and authentic Parisian vibes.
-      </p>
-
-      <div class="cta-row">
-        <a href="mailto:hello@lozu.fr" class="btn-primary">
-          Get early access
-        </a>
-        <a href="#about" class="btn-ghost">
-          Learn more
-        </a>
-        <span class="pill">Private beta · 2025</span>
-      </div>
-    </section>
-
-    <section id="about">
-      <div class="grid">
-        <div class="card">
-          <h3>Smart map, simple choices</h3>
-          <p>
-            Lozu shows points of interest around you, ranked by real-world signals:
-            reviews, history, aesthetics and how “walkable” it is from where you stand.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Solo-friendly by design</h3>
-          <p>
-            We highlight places that feel safe and welcoming for solo travelers –
-            from calm parks to lively cafés where it’s natural to sit alone with a book.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Human + AI curation</h3>
-          <p>
-            Behind the scenes, human taste and AI analysis work together to filter out
-            noisy ratings and surface the spots that are really worth your time.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Built in Paris, for explorers</h3>
-          <p>
-            Lozu is crafted in Paris and will gradually open to more cities.
-            Start with Paris, then take Lozu with you wherever you travel next.
-          </p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div>© <span id="year"></span> Lozu. All rights reserved.</div>
-    <div>
-      <a href="mailto:hello@lozu.fr">Contact</a>
+  <!-- Overlay notice -->
+  <div class="overlay-box">
+    <div class="title">
+      Bản đồ vị trí cứu trợ đang tạm thời dừng để nâng cấp
     </div>
-  </footer>
+    <p class="credits">Ứng dụng được phát triển bởi:</p>
+
+    <!-- 3 tên theo cột – căn trái -->
+    <div class="names-column">
+      <span>Lê Quốc Anh</span>
+      <span>Nguyễn Tuấn Đạt</span>
+      <span>Đồng Thị Liễu</span>
+    </div>
+  </div>
 
   <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
+    // Map init
+    const map = new maplibregl.Map({
+      container: "map",
+      style: "https://demotiles.maplibre.org/style.json",
+      center: [107.8, 16.2],   // Trung tâm Việt Nam
+      zoom: 5
+    });
   </script>
 </body>
 </html>
